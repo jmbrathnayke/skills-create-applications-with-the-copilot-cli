@@ -1,13 +1,16 @@
 /**
  * Unit Tests for Calculator CLI Application
  * 
- * Tests all four basic arithmetic operations:
+ * Tests all arithmetic operations:
  * - Addition
  * - Subtraction
  * - Multiplication
  * - Division
+ * - Modulo
+ * - Power (Exponentiation)
+ * - Square Root
  * 
- * Also includes edge case testing for division by zero
+ * Also includes edge case testing for various error conditions
  */
 
 const { spawn } = require('child_process');
@@ -205,7 +208,7 @@ describe('Calculator CLI Application', () => {
     test('should reject invalid operation', async () => {
       expect.assertions(1);
       try {
-        await runCalculator('modulo', '10', '3');
+       await runCalculator('invalid', '10', '3');
       } catch (error) {
         expect(error.message).toContain('Unknown operation');
       }
@@ -214,7 +217,7 @@ describe('Calculator CLI Application', () => {
     test('should reject insufficient arguments', async () => {
       expect.assertions(1);
       try {
-        await runCalculator('add', '5');
+        await runCalculator('add');
       } catch (error) {
         expect(error.message).toContain('Usage');
       }
@@ -230,25 +233,239 @@ describe('Calculator CLI Application', () => {
     });
   });
 
-  describe('Image-Based Test Cases', () => {
-    test('Example from image: 2 + 3 = 5', async () => {
-      const result = await runCalculator('add', '2', '3');
-      expect(parseFloat(result)).toBe(5);
+  describe('Modulo Tests', () => {
+    test('should calculate modulo with positive numbers: 10 % 3 = 1', async () => {
+     const result = await runCalculator('modulo', '10', '3');
+     expect(parseFloat(result)).toBe(1);
     });
 
-    test('Example from image: 10 - 4 = 6', async () => {
-      const result = await runCalculator('subtract', '10', '4');
-      expect(parseFloat(result)).toBe(6);
+    test('should calculate modulo: 5 % 2 = 1', async () => {
+     const result = await runCalculator('modulo', '5', '2');
+     expect(parseFloat(result)).toBe(1);
     });
 
-    test('Example from image: 45 * 2 = 90', async () => {
-      const result = await runCalculator('multiply', '45', '2');
-      expect(parseFloat(result)).toBe(90);
+    test('should calculate modulo: 20 % 7 = 6', async () => {
+     const result = await runCalculator('modulo', '20', '7');
+     expect(parseFloat(result)).toBe(6);
     });
 
-    test('Example from image: 20 / 5 = 4', async () => {
-      const result = await runCalculator('divide', '20', '5');
-      expect(parseFloat(result)).toBe(4);
+    test('should calculate modulo with negative dividend: (-10) % 3 = -1', async () => {
+     const result = await runCalculator('modulo', '-10', '3');
+     expect(parseFloat(result)).toBe(-1);
+    });
+
+    test('should calculate modulo with negative divisor: 10 % (-3) = 1', async () => {
+     const result = await runCalculator('modulo', '10', '-3');
+     expect(parseFloat(result)).toBe(1);
+    });
+
+    test('should calculate modulo: 15 % 5 = 0', async () => {
+     const result = await runCalculator('modulo', '15', '5');
+     expect(parseFloat(result)).toBe(0);
+    });
+
+    test('should work with symbol %: 17 % 5 = 2', async () => {
+     const result = await runCalculator('%', '17', '5');
+     expect(parseFloat(result)).toBe(2);
+    });
+
+    test('should reject modulo by zero', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('modulo', '10', '0');
+     } catch (error) {
+       expect(error.message).toContain('Modulo by zero');
+     }
+    });
+
+    test('should reject modulo with more than 2 numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('modulo', '10', '3', '2');
+     } catch (error) {
+       expect(error.message).toContain('exactly 2 numbers');
+     }
+    });
+
+    test('should reject modulo with less than 2 numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('modulo', '10');
+     } catch (error) {
+       expect(error.message).toContain('exactly 2 numbers');
+     }
     });
   });
+
+  describe('Power/Exponentiation Tests', () => {
+    test('should calculate power: 2 ^ 3 = 8', async () => {
+     const result = await runCalculator('power', '2', '3');
+     expect(parseFloat(result)).toBe(8);
+    });
+
+    test('should calculate power: 5 ^ 2 = 25', async () => {
+     const result = await runCalculator('power', '5', '2');
+     expect(parseFloat(result)).toBe(25);
+    });
+
+    test('should calculate power: 10 ^ 0 = 1', async () => {
+     const result = await runCalculator('power', '10', '0');
+     expect(parseFloat(result)).toBe(1);
+    });
+
+    test('should calculate power with negative exponent: 2 ^ (-2) = 0.25', async () => {
+     const result = await runCalculator('power', '2', '-2');
+     expect(parseFloat(result)).toBe(0.25);
+    });
+
+    test('should calculate power with decimal base: 2.5 ^ 2 = 6.25', async () => {
+     const result = await runCalculator('power', '2.5', '2');
+     expect(parseFloat(result)).toBeCloseTo(6.25, 5);
+    });
+
+    test('should calculate power with fractional exponent: 16 ^ 0.5 = 4', async () => {
+     const result = await runCalculator('power', '16', '0.5');
+     expect(parseFloat(result)).toBe(4);
+    });
+
+    test('should calculate power: 1 ^ 1000 = 1', async () => {
+     const result = await runCalculator('power', '1', '1000');
+     expect(parseFloat(result)).toBe(1);
+    });
+
+    test('should work with symbol ^: 3 ^ 4 = 81', async () => {
+     const result = await runCalculator('^', '3', '4');
+     expect(parseFloat(result)).toBe(81);
+    });
+
+    test('should reject power with more than 2 numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('power', '2', '3', '4');
+     } catch (error) {
+       expect(error.message).toContain('exactly 2 numbers');
+     }
+    });
+
+    test('should reject power with less than 2 numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('power', '2');
+     } catch (error) {
+       expect(error.message).toContain('exactly 2 numbers');
+     }
+    });
+  });
+
+  describe('Square Root Tests', () => {
+    test('should calculate square root: √16 = 4', async () => {
+     const result = await runCalculator('sqrt', '16');
+     expect(parseFloat(result)).toBe(4);
+    });
+
+    test('should calculate square root: √25 = 5', async () => {
+     const result = await runCalculator('sqrt', '25');
+     expect(parseFloat(result)).toBe(5);
+    });
+
+    test('should calculate square root: √2 ≈ 1.414', async () => {
+     const result = await runCalculator('sqrt', '2');
+     expect(parseFloat(result)).toBeCloseTo(1.414, 3);
+    });
+
+    test('should calculate square root: √0 = 0', async () => {
+     const result = await runCalculator('sqrt', '0');
+     expect(parseFloat(result)).toBe(0);
+    });
+
+    test('should calculate square root: √0.25 = 0.5', async () => {
+     const result = await runCalculator('sqrt', '0.25');
+     expect(parseFloat(result)).toBe(0.5);
+    });
+
+    test('should calculate square root: √100 = 10', async () => {
+     const result = await runCalculator('sqrt', '100');
+     expect(parseFloat(result)).toBe(10);
+    });
+
+    test('should work with symbol √: √49 = 7', async () => {
+     const result = await runCalculator('√', '49');
+     expect(parseFloat(result)).toBe(7);
+    });
+
+    test('should reject square root of negative numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('sqrt', '-1');
+     } catch (error) {
+       expect(error.message).toContain('negative number');
+     }
+    });
+
+    test('should reject square root of negative decimal', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('sqrt', '-16');
+     } catch (error) {
+       expect(error.message).toContain('negative number');
+     }
+    });
+
+    test('should reject square root with more than 1 number', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('sqrt', '16', '4');
+     } catch (error) {
+       expect(error.message).toContain('exactly 1 number');
+     }
+    });
+
+    test('should reject square root with no numbers', async () => {
+     expect.assertions(1);
+     try {
+       await runCalculator('sqrt');
+     } catch (error) {
+       expect(error.message).toContain('Usage');
+     }
+    });
+  });
+
+  describe('Image-Based Test Cases - Extended Operations', () => {
+    test('Example from image: modulo with 5 % 2 = 1', async () => {
+     const result = await runCalculator('modulo', '5', '2');
+     expect(parseFloat(result)).toBe(1);
+    });
+
+    test('Example from image: power with 2 ^ 3 = 8', async () => {
+     const result = await runCalculator('power', '2', '3');
+     expect(parseFloat(result)).toBe(8);
+    });
+
+    test('Example from image: square root with √16 = 4', async () => {
+     const result = await runCalculator('sqrt', '16');
+     expect(parseFloat(result)).toBe(4);
+    });
+});
+
+describe('Image-Based Test Cases - Original Operations', () => {
+  test('Example from image: 2 + 3 = 5', async () => {
+     const result = await runCalculator('add', '2', '3');
+     expect(parseFloat(result)).toBe(5);
+  });
+
+  test('Example from image: 10 - 4 = 6', async () => {
+     const result = await runCalculator('subtract', '10', '4');
+     expect(parseFloat(result)).toBe(6);
+  });
+
+  test('Example from image: 45 * 2 = 90', async () => {
+     const result = await runCalculator('multiply', '45', '2');
+     expect(parseFloat(result)).toBe(90);
+  });
+
+  test('Example from image: 20 / 5 = 4', async () => {
+     const result = await runCalculator('divide', '20', '5');
+     expect(parseFloat(result)).toBe(4);
+  });
+});
 });
